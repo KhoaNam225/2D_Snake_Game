@@ -12,7 +12,6 @@ class Block(object):
         color: the color of the block (this will vary between different game objects)
         _size: the size of the block
     """
-
     def __init__(self, x: int, y: int, color: Tuple[int, int ,int], size: Tuple[int, int]):
         """
         Construct a block given its coordinate and color.
@@ -114,9 +113,45 @@ class Block(object):
         """
         self._y += pixels_num
 
+    def change_color(self, new_color: Tuple[int, int, int]) -> None:
+        """
+        Change the color of the current block
+
+        Args:
+            new_color (Tuple[int, int, int]): the new color
+
+        Returns:
+            None
+        """
+        self._color = new_color
+
+    def set_x(self, new_x: int) -> None:
+        """
+        Set a new x-coordinate for the current Block
+
+        Args:
+            new_x (int): The new x-coordinate
+
+        Returns:
+            None
+        """
+        self._x = new_x
+
+    def set_y(self, new_y: int) -> None:
+        """
+        Set a new y-coordinate for the current Block
+
+        Args:
+            new_y (int): The new y-coordinate
+
+        Returns:
+            None
+        """
+        self._y = new_y
+
     def draw(self) -> pygame.Surface:
         """
-        Draw the current block on a surface and return that surface
+        Draw the current block on the screen and return the surface of the block
 
         Args:
             None
