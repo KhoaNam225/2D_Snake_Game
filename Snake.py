@@ -23,6 +23,7 @@ class Snake(object):
     MAX_LENGTH = 15
     SNAKE_BLOCK_SIZE = (20, 20)
     SNAKE_COLOR = (255, 0, 0)
+    SCREEN_SIZE = (1000, 700)
 
     def __init__(self, board_width, board_height):
         """
@@ -32,10 +33,12 @@ class Snake(object):
             board_width (int): The width of the window
             board_height (int): The height of the window
         """
+        x = randint(Snake.MIN_LENGTH + 1, Snake.SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
+        y = randint(1, Snake.SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
         # head_x = randint(10, board_width - 10) # Need to make sure the whole body will horizontally fit in the screen
         # head_y = randint(5, board_height - 5)  # Also need to avoid the border of the window
-        head_x = 200
-        head_y = 200
+        head_x = Snake.SNAKE_BLOCK_SIZE[0] * x
+        head_y = Snake.SNAKE_BLOCK_SIZE[0] * y
         self._length = Snake.MIN_LENGTH
         self._dead = False
         self._body = []
@@ -189,6 +192,31 @@ class Snake(object):
         """
         self._body[0].set_x(new_coordinate[0])
         self._body[0].set_y(new_coordinate[1])
+
+    def eat_fruit(self, direction: str, fruit: Block) -> None:
+        """
+        Eat the fruit and increase the size of the snake
+
+        Args:
+            direction (str): The direction the snake is moving in 
+            fruit (Block): The fruit
+
+        Returns:
+            None
+        """
+        new_block = None
+        if direction == 'W':
+            new_block = Block(fruit.get_x(), fruit.get_y() - Snake.SNAKE_BLOCK_SIZE[0], Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
+        elif direction == 'S':
+            new_block = Block(fruit.get_x(), fruit.get_y() + Snake.SNAKE_BLOCK_SIZE[0], Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
+        elif direction == 'A':
+            new_block = Block(fruit.get_x() - Snake.SNAKE_BLOCK_SIZE[0], fruit.get_y(), Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
+        elif direction == 'D':
+            new_block =  Block(fruit.get_x() + Snake.SNAKE_BLOCK_SIZE[0], fruit.get_y(), Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
+
+        self._body = [new_block] + self._body
+        self._length += 1
+
 
     def draw(self, screen: pygame.Surface) -> List[pygame.Rect]:
         """

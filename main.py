@@ -4,10 +4,11 @@ from sys import exit
 from Block import Block
 from Snake import Snake
 from typing import List, Tuple
+from random import randint
 
 pygame.init()
 
-SCREEN_SIZE = (1024, 768)
+SCREEN_SIZE = (1000, 700)
 BACKGROUND_COLOR = (0, 0, 0)
 UP = 'W'
 DOWN = 'S'
@@ -15,7 +16,7 @@ LEFT = 'A'
 RIGHT = 'D'
 
 DIRECTION = RIGHT
-
+FRUIT_COLOR = (0, 255, 0)
 screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
 change = 1
 block_size = (10, 10)
@@ -25,6 +26,70 @@ time = 70
 screen.fill(BACKGROUND_COLOR)
 is_running = True
 pygame.display.update(snake.draw(screen))
+
+def generate_fruit(snake: Snake) -> Block:
+    """
+    Generate a fruit and make sure it is in a valid position
+
+    Args:
+        snake (Snake) : The Snake object, to check if the fruit generated is in valid position
+
+    Returns:
+        A valid fruit 
+    """
+    fruit = create_fruit()
+    while not is_valid(fruit, snake):
+        fruit = create_fruit()
+
+    return fruit
+
+def create_fruit() -> Block:
+    """
+    Create a fruit at random position on the screen
+
+    Args:
+        None
+
+    Returns:
+        A Block object representing the fruit
+    """
+    x = randint(1, SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
+    y = randint(1, SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
+    fruit_x = x * Snake.SNAKE_BLOCK_SIZE[0]
+    fruit_y = y * Snake.SNAKE_BLOCK_SIZE[0]
+
+    return Block(fruit_x, fruit_y, FRUIT_COLOR, Snake.SNAKE_BLOCK_SIZE)
+
+def is_valid(fruit: Block, snake: Snake) -> Block:
+    """
+    Check if the fruit is in a valid coordinate.
+    The coordinate is valid if it does not lie on the body of the snake
+
+    Args:
+        fruit (Block): The fruit
+        snake (Snake): The snake
+
+    Returns:
+        True if the fruit is in valid position or False otherwise
+    """
+    for block in snake.get_body():
+        if fruit.get_x() == block.get_x() and fruit.get_y() == block.get_y():
+            return False
+
+    return True
+
+def check_fruit_collision(fruit: Block, snake: Snake) -> bool:
+    """
+    Checks if the snake has collided with the fruit
+
+    Args:
+        fruit (Block): The fruit
+        snake (Snake): The Snake
+
+    Returns:
+        True if the snake collides with the fruit or False otherwise
+    """
+    return fruit.get_x() == snake.get_head().get_x() and fruit.get_y() == snake.get_head().get_y()
 
 def erase_block(block: Block, screen: pygame.Surface) -> None:
     """
@@ -109,20 +174,22 @@ def check_edge_collision(snake: Snake) -> None:
     head_y = snake.get_head().get_y()
 
     # The left edge
-    if head_x <= 0:
+    if head_x < 0:
         snake.teleport((SCREEN_SIZE[0] - Snake.SNAKE_BLOCK_SIZE[0], head_y))
     # The right edge
     elif head_x >= SCREEN_SIZE[0]:
         snake.teleport((0, head_y))
     # The upper edge
-    elif head_y <= 0:
+    elif head_y < 0:
         snake.teleport((head_x, SCREEN_SIZE[1] - Snake.SNAKE_BLOCK_SIZE[0]))
     # The lower edge
     elif head_y >= SCREEN_SIZE[1]:
         snake.teleport((head_x, 0))
 
+fruit = generate_fruit(snake)
 while is_running:
     update_rects = []
+    
     for event in pygame.event.get():
         if event.type == QUIT:
             is_running = False
@@ -136,8 +203,15 @@ while is_running:
             elif event.key == K_a and DIRECTION != RIGHT:
                 DIRECTION = LEFT
 
+    
+    if check_fruit_collision(fruit, snake):
+        snake.eat_fruit(DIRECTION, fruit)
+        fruit = generate_fruit(snake)
+        update_rects += snake.draw(screen)
+
     pygame.time.wait(time)
     
-    update_rects = move_snake(DIRECTION, snake)
+    update_rects += move_snake(DIRECTION, snake)
+    update_rects.append(draw_block(fruit, screen))
     
     pygame.display.update(update_rects)
