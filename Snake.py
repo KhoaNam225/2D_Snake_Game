@@ -35,8 +35,6 @@ class Snake(object):
         """
         x = randint(Snake.MIN_LENGTH + 1, Snake.SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
         y = randint(1, Snake.SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
-        # head_x = randint(10, board_width - 10) # Need to make sure the whole body will horizontally fit in the screen
-        # head_y = randint(5, board_height - 5)  # Also need to avoid the border of the window
         head_x = Snake.SNAKE_BLOCK_SIZE[0] * x
         head_y = Snake.SNAKE_BLOCK_SIZE[0] * y
         self._length = Snake.MIN_LENGTH
@@ -179,6 +177,19 @@ class Snake(object):
         self._body[0] = Block(head_x, head_y + Snake.SNAKE_BLOCK_SIZE[1], Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
 
         return tail
+
+    def die(self) -> None:
+        """
+        Makes the current Snake die
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self._dead = True
+
 
     def teleport(self, new_coordinate: Tuple[int, int]) -> None:
         """
