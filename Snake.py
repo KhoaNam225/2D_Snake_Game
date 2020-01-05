@@ -20,28 +20,27 @@ class Snake(object):
         dead (bool): Is the Snake dead or alive
     """
     MIN_LENGTH = 5
-    MAX_LENGTH = 15
     SNAKE_BLOCK_SIZE = (20, 20)
     SNAKE_COLOR = (255, 0, 0)
     SCREEN_SIZE = (1000, 700)
 
-    def __init__(self, board_width, board_height):
+    def __init__(self, board_width: int, board_height: int, length: int):
         """
-        Create a snake with the minimum length and at random position in the board.
+        Create a snake with the given length and at random position in the board.
 
         Attributes:
             board_width (int): The width of the window
             board_height (int): The height of the window
         """
-        x = randint(Snake.MIN_LENGTH + 1, Snake.SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
+        x = randint(length + 1, Snake.SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
         y = randint(1, Snake.SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
         head_x = Snake.SNAKE_BLOCK_SIZE[0] * x
         head_y = Snake.SNAKE_BLOCK_SIZE[0] * y
-        self._length = Snake.MIN_LENGTH
+        self._length = length
         self._dead = False
         self._body = []
         self._body.append(Block(head_x, head_y, Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE))
-        for i in range(1, 5):
+        for i in range(1, length):
             block = Block(head_x - i * Snake.SNAKE_BLOCK_SIZE[0], head_y, Snake.SNAKE_COLOR, Snake.SNAKE_BLOCK_SIZE)
             self._body.append(block)
 
@@ -228,7 +227,20 @@ class Snake(object):
         self._body = [new_block] + self._body
         self._length += 1
 
+    def remove_tail(self) -> Block:
+        """
+        Removes the tail of the snake
 
+        Args:
+            None
+
+        Returns:
+            The removed Block representing the tail of the snake
+        """
+        tail = self._body.pop()
+        self._length -= 1
+        return tail
+    
     def draw(self, screen: pygame.Surface) -> List[pygame.Rect]:
         """
         Draw the whole Snake on the screen and returns the updated areas (for updating purpose)

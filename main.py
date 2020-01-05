@@ -11,26 +11,53 @@ pygame.init()
 SCREEN_SIZE = (1000, 700)
 BACKGROUND_COLOR = (0, 0, 0)
 GATE_COLOR = (144, 99, 255)
+
+# Controlling keys
 UP = 'W'
 DOWN = 'S'
 LEFT = 'A'
 RIGHT = 'D'
 
-DIRECTION = RIGHT
+DIRECTION = RIGHT  # Always start the game with a moving right snake
 FRUIT_COLOR = (0, 255, 0)
-LEVEL_UP = 5
+LEVEL_UP = 5  # Must eat 4  (5 - 1 = 4) fruits to go to the next level
+
+# Setting up the GUI
+pygame.display.set_caption("Classic Snake 2D")
 screen = pygame.display.set_mode(SCREEN_SIZE, 0, 32)
-font = pygame.font.Font("font.ttf", 20)
-change = 1
-block_size = (10, 10)
-block = Block(0, 0, (255, 0, 0), block_size)
-snake = Snake(SCREEN_SIZE[0], SCREEN_SIZE[1])
-time = 70
+icon = pygame.image.load("icon.png")
+pygame.display.set_icon(icon)
+large_font = pygame.font.Font("font.ttf", 25)
+small_font = pygame.font.Font("font.ttf", 18)
 screen.fill(BACKGROUND_COLOR)
+
+# The snake of the game
+snake = Snake(SCREEN_SIZE[0], SCREEN_SIZE[1], Snake.MIN_LENGTH)
+# The fruit
+fruit = None
+
+# The boolean flag to tell the reason why the snake is dead
+eat_self = False
+eat_gate = False
+
+# Open/close the gate flag
+gate_open = False
+# The gate
+gate = None
+
+# Stop the game
 is_running = True
+
+# Keep track of the number of fruits eaten
+# If the number of fruit eaten reaches a certain number
+# Reset it to 1 and speed up the game (level up)
 food_count = 1
+
+# Contants controlling the speed of the game
+time = 70
 time_diff = 5
 speed_level = 0
+
 pygame.display.update(snake.draw(screen))
 
 def generate_fruit(snake: Snake) -> Block:
@@ -44,6 +71,7 @@ def generate_fruit(snake: Snake) -> Block:
         A valid fruit 
     """
     fruit = create_fruit()
+    # Keep creating the fruit until we have a valid position of the fruit
     while not is_valid(fruit, snake):
         fruit = create_fruit()
 
@@ -59,6 +87,7 @@ def create_fruit() -> Block:
     Returns:
         A Block object representing the fruit
     """
+    # Randomize the coordinate
     x = randint(1, SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
     y = randint(1, SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[0] - 1)
     fruit_x = x * Snake.SNAKE_BLOCK_SIZE[0]
@@ -108,7 +137,7 @@ def erase_block(block: Block, screen: pygame.Surface) -> None:
     Returns:
         The pygame.Rect object where the Block is located
     """
-    block.change_color(BACKGROUND_COLOR)
+    block.change_color(BACKGROUND_COLOR)  # Change the color of the block to the background color
     screen.blit(block.draw(), block.get_coordinate())
     return pygame.Rect(block.get_coordinate(), block.get_size())
 
@@ -207,6 +236,8 @@ def check_eat_self(snake: Snake) -> bool:
     head_y = snake.get_head().get_y()
     body = snake.get_body()
     curr = 1
+
+    # Checks the coordinate of the head against all the other blocks of the body
     while curr < len(body) and not eaten:
         eaten = head_x == body[curr].get_x() and head_y == body[curr].get_y()
         curr += 1
@@ -224,15 +255,45 @@ def end_game(message: str) -> None:
     Returns:
         None
     """
+
+    """
+    The ending message will be in the following format:
+    GAME OVER
+    <A proper message>
+    """
     screen.fill(BACKGROUND_COLOR)
-    final_message = "GAME OVER\n" + message
-    text_surface = font.render(final_message, True, Snake.SNAKE_COLOR)
-    text_size = font.size(final_message)
-    screen.blit(text_surface, (SCREEN_SIZE[0] // 2 - text_size[0] // 2, SCREEN_SIZE[1] // 2 - text_size[1] // 2))
+    large_text = "GAME OVER"
+    small_text = message
+
+    # Get the surfaces of the text
+    large_surf = large_font.render(large_text, True, Snake.SNAKE_COLOR)
+    small_surf = small_font.render(small_text, True, Snake.SNAKE_COLOR)
+
+    large_rect = large_surf.get_rect()
+    small_rect = small_surf.get_rect()
+
+    # Centering the text
+    large_rect.center = (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2 - large_rect.height)
+    small_rect.center = (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2 + 10)
+
+    screen.blit(large_surf, large_rect)
+    screen.blit(small_surf, small_rect)
     pygame.display.update()
     pygame.time.wait(5000)
 
 def create_gate() -> List[Block]:
+    """
+    Creates a gate and returns the List of Blocks objects that makes the gate
+    The gate will comprise of 5 Blocks and will have the shape like this:
+    ###
+    # #
+
+    Args:
+        None
+
+    Returns:
+        The List of Blocks representing the gate
+    """
     gate_blocks = []
     x = randint(0, SCREEN_SIZE[0] // Snake.SNAKE_BLOCK_SIZE[0] - 3)
     y = randint(0, SCREEN_SIZE[1] // Snake.SNAKE_BLOCK_SIZE[1] - 3)
@@ -241,15 +302,41 @@ def create_gate() -> List[Block]:
     first_block_y = y * Snake.SNAKE_BLOCK_SIZE[1]
 
     first_block = Block(first_block_x, first_block_y, GATE_COLOR, Snake.SNAKE_BLOCK_SIZE)
-    gate_blocks.append(first_block)
+    gate_blocks.append(first_block)  #  "#"
+    """
+    #
+    #
+    """
     gate_blocks.append(Block(first_block_x, first_block_y + Snake.SNAKE_BLOCK_SIZE[0], GATE_COLOR, Snake.SNAKE_BLOCK_SIZE))
+    """
+    ##
+    #
+    """
     gate_blocks.append(Block(first_block_x + Snake.SNAKE_BLOCK_SIZE[0], first_block_y, GATE_COLOR, Snake.SNAKE_BLOCK_SIZE))
+    """
+    ###
+    #
+    """
     gate_blocks.append(Block(first_block_x + 2 * Snake.SNAKE_BLOCK_SIZE[0], first_block_y, GATE_COLOR, Snake.SNAKE_BLOCK_SIZE))
+    """
+    ###
+    # #
+    """
     gate_blocks.append(Block(first_block_x + 2 * Snake.SNAKE_BLOCK_SIZE[0], first_block_y + Snake.SNAKE_BLOCK_SIZE[0], GATE_COLOR, Snake.SNAKE_BLOCK_SIZE))
 
     return gate_blocks
 
 def draw_gate(gate: List[Block], screen: pygame.Surface) -> List[pygame.Rect]:
+    """
+    Draw the gate and returns the areas that need to be updated 
+
+    Args:
+        gate (List[Block]): The List of Blocks that make the gate
+        screen (pygame.Surface): The screen to draw to gate on
+
+    Returns:
+        The pygame.Rect objects represent the area that needs to be updated
+    """
     update_areas = []
     for block in gate:
         update_rect = draw_block(block, screen)
@@ -257,18 +344,116 @@ def draw_gate(gate: List[Block], screen: pygame.Surface) -> List[pygame.Rect]:
 
     return update_areas
 
+def passed_gate(snake: Snake, gate: List[Block]) -> bool:
+    """
+    Checks if the snake has passed the gate
+
+    Args:
+        snake (Snake): The snake
+        gate (List[Block]): The List of Blocks object representing the gate
+
+    Returns:
+        True if the snake has reached the entrance of the gate and False otherwise        
+    """
+
+    
+    # Since there is only one way to go throught the gate which is throught the front.
+    # We only need to check if the snake has reached the front of the gate (marked * in the figure below)
+    # ###
+    # #*#
+    # If the snake has reached to that position, it can definitely pass the gate
+    snake_head = snake.get_head()
+    first_block = gate[0]
+
+    if snake_head.get_x() == first_block.get_x() + Snake.SNAKE_BLOCK_SIZE[0] and snake_head.get_y() == first_block.get_y() + Snake.SNAKE_BLOCK_SIZE[0]:
+        return True
+    else:
+        return False
+
+def check_gate_collision(snake: Snake, gate: List[Block]) -> bool:
+    """
+    Check if the snake has collided with the gate but not going in the gate
+
+    Args:
+        snake (Snake): The snake
+        gate (List[Block]): The List of Blocks object representing the gate
+
+    Returns:
+        True if the snake has collided with the gate but has not reached the entrance of the gate
+        and False otherwise
+    """
+    collided = False
+
+    # Check for every block of the gate to see if the snake has stumbled on that block
+    snake_x = snake.get_head().get_x()
+    snake_y = snake.get_head().get_y()
+    for block in gate:
+        if block.get_x() == snake_x and block.get_y() == snake_y:
+            collided = True
+
+    return collided
+
+def go_throught_gate(snake: Snake, screen: pygame.Surface) -> None:
+    """
+    Moves throught the gate to get to the next level and update the action on the screen
+
+    Args:
+        snake (Snake): The Snake
+
+    Returns:
+        The old length of the snake
+    """
+    # To create the going throught the gate effect, 
+    # we simply just delete the tail of the snake and keep everything the same
+    update_rects = []
+    length = snake.get_length()
+    while snake.get_length() > 0:
+        # Get the removed tail and delete it from the screen
+        old_tail = snake.remove_tail()  
+        update_rects = snake.draw(screen)
+        update_rects.append(erase_block(old_tail, screen))
+        pygame.display.update(update_rects)
+        pygame.time.wait(time - speed_level * time_diff)
+
+    return length
+
+def remove_gate(gate: List[Block], screen: pygame.Surface) -> None:
+    """
+    After the snake has passed the gate, remove it
+
+    Args:
+        gate (List[Block]): The gate
+        screen (pygame.Surface): The screen to remove the gate from
+
+    Returns:
+        None
+    """
+
+    update_rects = []
+    for block in gate:
+        update_rects.append(erase_block(block, screen))
+
+    pygame.display.update(update_rects)
+
+
 fruit = generate_fruit(snake)
-eat_self = False
-gate_open = False
-gate = None
+
 while is_running:
+    # Has the snake eaten itself?
     if check_eat_self(snake):
         is_running = False
         eat_self = True
 
+    # Has the snake stumbled on the wall of the gate
+    if gate_open and check_gate_collision(snake, gate):
+        is_running = False
+        eat_gate = True
+
+    # If the snake is not dead yet
     if is_running:
         update_rects = []
         
+        # Capture the key
         for event in pygame.event.get():
             if event.type == QUIT:
                 is_running = False
@@ -282,24 +467,36 @@ while is_running:
                 elif event.key == K_a and DIRECTION != RIGHT:
                     DIRECTION = LEFT
 
-        
-        if check_fruit_collision(fruit, snake):
+        # Check if eats fruit
+        if not gate_open and check_fruit_collision(fruit, snake):
             snake.eat_fruit(DIRECTION, fruit)
             fruit = generate_fruit(snake)
             update_rects += snake.draw(screen)
             food_count += 1
 
+        # Check for level up
         if food_count % LEVEL_UP == 0:
             gate_open = True
-            speed_level += 1
             food_count = 1
             gate = create_gate()
-            if time < 10:
-                time = 10
+
+        if gate_open:
+            # If the snake passed the gate, make it go throught the gate
+            # and after going through it, remove the gate and place the snake
+            # at a new random position with the same length
+            if passed_gate(snake, gate):
+                snake_length = go_throught_gate(snake, screen)
+                remove_gate(gate, screen)
+                gate = None
+                snake = Snake(SCREEN_SIZE[0], SCREEN_SIZE[1], snake_length)
+                speed_level += 1
+                gate_open = False
 
         pygame.time.wait(time - speed_level * time_diff)
         
         update_rects += move_snake(DIRECTION, snake)
+
+        # When the gate is opening, the snake will have no fruit to eat
         if not gate_open:
             update_rects.append(draw_block(fruit, screen))
         else:
@@ -307,5 +504,8 @@ while is_running:
 
         pygame.display.update(update_rects)
     else:
+        # Ending the game with a proper message base on the reason for the dead of the snake
         if eat_self:
-            end_game("You ate your self!")
+            end_game("You are not delicous!")
+        elif eat_gate:
+            end_game("Gate is not delicous!")
