@@ -17,34 +17,47 @@ Once you have Python3.7 or newer installed on your computer,you need to install 
 
 In order to run the game, download all the file in this repository and put them in one folder. Then on the terminal, move to the directory containing all the downloaded files. Finally enter the following command:
 
-`~$ python3 Snake.py`
+`~$ python3 .py`
 
-## Features
+## How to play
 
-When the game is first started, it will show up the main menu.
-In the main menu, there are 4 options. Here is the explaination for each option:
+When the game is first started, it will greet the player and ask the player to press any key to start or press ESC to 
+quit the game like the following:
 
-__1. Start game__
+![start_screen](start_screen.png)
 
-Start a new game and with the apply all the settings which have been made so far.
+When the player presses any keys except from ESC, there will be a snake appears immediately on the screen along with the fruit for the snake to eat.
 
-__2. Settings__
+![fruit](fruit.png)
 
-Change the settings of the game, all the settings are:
+The player controls the snake and guides it toward the fruit using the following key:
 
-* __Game difficulty:__ Controling the speed of the snake and the rate at which the speed will increase after eating a fruit.
+* __W:__ go up
+* __S:__ go down
+* __A:__ go left
+* __D:__ go right
 
-* __Snake color:__ Changing the color of the snake, there will be some available color.
+When the snake has eaten a certain number of fruits, a gate will appear and the snake needs to go through it to get to the next level. 
 
-* __Gate on/off:__ If this is turn on, after the snake has gained enough length, the player must guide it to go through a gate to go to the next level. If this is turned off, there will be no gate and the player does not have to go through any gates to get to the next level.
+![gate_appear](gate_appear.png)
 
-__3. How to play__
+The snake must go throught the gate throught the hole on it. If the snake stumbles on any edges of the gate, it will die and the player will loose the game.
 
-Show an instruction on how to play the game.
+![pass_gate](pass_gate.png)
 
-__4. Exit__
+When the snake has passed the gate succefully, the game speed will increase and the length of the snake will be kept the same.
 
-Exit the game and close the window.
+If the snake bites itself or stumbles on the edges of the gate, it will die and there will be a message notify the player and ask them to play again or to quit.
+
+The snake hits the gate:
+
+![gate_die](gate_die.png)
+
+The snake bites it self:
+
+![snake_die](snake_die.png)
+
+When the player aggrees to play again, the game will be reset to the initial state.
 
 ## License
 
